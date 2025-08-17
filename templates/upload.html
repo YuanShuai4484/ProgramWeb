@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>软件上传管理 - 小工具集导航</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .upload-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .upload-form {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-upload-input {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-upload-label {
+            display: block;
+            padding: 20px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #f7fafc;
+        }
+        
+        .file-upload-label:hover {
+            border-color: #667eea;
+            background-color: #edf2f7;
+        }
+        
+        .file-upload-label.dragover {
+            border-color: #667eea;
+            background-color: #e6fffa;
+        }
+        
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #718096;
+        }
+        
+        .upload-text {
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+        
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        
+        /* 软件列表样式 */
+        .components-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .section-header h2 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 1.5rem;
+        }
+        
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sort-controls label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .sort-select {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .components-container {
+            min-height: 200px;
+        }
+        
+        .loading-state, .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #718096;
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .empty-text {
+            font-size: 1.1rem;
+        }
+        
+        .components-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .component-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f7fafc;
+            transition: all 0.2s ease;
+        }
+        
+        .component-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+        
+        .component-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .component-path {
+            font-size: 14px;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        
+        .component-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .component-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-visit {
+            background-color: #667eea;
+            color: white;
+        }
+        
+        .btn-visit:hover {
+            background-color: #5a67d8;
+        }
+        
+        .btn-delete {
+            background-color: #e53e3e;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background-color: #c53030;
+        }
+        
+        /* 确认对话框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        
+        .modal-text {
+            color: #4a5568;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #cbd5e0;
+        }
+        
+        #alertContainer {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-success {
+            background-color: #f0fff4;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .alert-error {
+            background-color: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        .path-hint {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .selected-file {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #edf2f7;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        
+        /* 管理导航样式 */
+        .management-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .nav-btn {
+            padding: 12px 24px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: #4a5568;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .management-section {
+            display: block;
+        }
+        
+        .management-section.hidden {
+            display: none;
+        }
+        
+        /* 软件管理选项卡样式 */
+        .software-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .software-tab-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .software-tab-btn:hover {
+            background: #edf2f7;
+            color: #667eea;
+        }
+        
+        .software-tab-btn.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+        
+        .software-tab-content {
+            display: block;
+        }
+        
+        /* 工具控制样式 */
+        .tools-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        /* 分类和工具卡片样式 */
+        .category-card, .tool-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f7fafc;
+            transition: all 0.2s ease;
+        }
+        
+        .category-card:hover, .tool-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+        
+        .category-name, .tool-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .category-display-name {
+            font-size: 1rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+        
+        .tool-description {
+            color: #4a5568;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .tool-category {
+            font-size: 0.9rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-edit {
+            background-color: #4299e1;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-edit:hover {
+            background-color: #3182ce;
+        }
+        
+        .btn-delete {
+            background-color: #e53e3e;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-delete:hover {
+            background-color: #c53030;
+        }
+        
+        /* Header 样式调整 - 与首页完全一致 */
+        .upload-container .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .upload-container .header .upload-btn {
+            display: inline-block; /* 确保a标签的margin-top生效 */
+            margin-top: 15px; /* 与首页按钮样式一致 */
+            text-decoration: none; /* 移除下划线 */
+        }
+        
+        @media (max-width: 768px) {
+            .upload-container {
+                padding: 10px;
+            }
+            
+            .upload-container .header {
+                padding: 30px 0; /* 小屏幕适当减少padding */
+            }
+            
+            .upload-container .header .upload-btn {
+                display: inline-block; /* 确保a标签的margin-top生效 */
+                margin-top: 15px; /* 与首页保持一致 */
+                text-decoration: none; /* 移除下划线 */
+            }
+            
+            .upload-form {
+                padding: 20px;
+            }
+            
+            .form-buttons {
+                flex-direction: column;
+            }
+            
+            .management-nav {
+                flex-direction: column;
+            }
+            
+            .tools-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <header class="header">
+            <h1>软件上传管理</h1>
+            <p>上传HTML软件文件，通过自定义路径访问</p>
+            <a href="{{ url_for('index') }}" class="upload-btn">返回首页</a>
+        </header>
+        
+        <!-- 选项卡导航 -->
+        <div class="management-nav">
+            <button class="nav-btn active" onclick="showSection('upload')">软件上传</button>
+            <button class="nav-btn" onclick="showSection('software')">软件管理</button>
+            <button class="nav-btn" onclick="showSection('categories')">分类管理</button>
+        </div>
+        
+        <!-- 全局提示容器 -->
+        <div id="alertContainer"></div>
+        
+        <!-- 软件上传区域 -->
+        <div id="uploadSection" class="upload-form management-section">
+            
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label" for="title">软件标题 *</label>
+                <input type="text" id="title" name="title" class="form-input" placeholder="请输入软件标题" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="path_name">访问路径 *</label>
+                    <input type="text" id="path_name" name="path_name" class="form-input" placeholder="例如：calculator" required>
+                    <div class="path-hint">
+                        只能包含字母和数字，不能重复。上传后可通过 <strong>域名/路径名</strong> 访问
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="category_id">选择分类 *</label>
+                    <select id="category_id" name="category_id" class="form-select" required>
+                        <option value="">请选择分类</option>
+                        <!-- 分类选项将通过JavaScript动态加载 -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">HTML文件 *</label>
+                    <div class="file-upload">
+                        <input type="file" id="file" name="file" class="file-upload-input" accept=".html" required>
+                        <label for="file" class="file-upload-label" id="fileLabel">
+                            <div class="upload-icon">📁</div>
+                            <div class="upload-text">点击选择文件或拖拽文件到此处</div>
+                            <div class="upload-hint">支持HTML文件，最大16MB</div>
+                        </label>
+                        <div id="selectedFile" class="selected-file" style="display: none;"></div>
+                    </div>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">上传软件</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- 已上传组件列表 -->
+        <div id="softwareSection" class="components-section management-section hidden">
+            <!-- 软件管理选项卡 -->
+            <div class="software-tabs">
+                <button class="software-tab-btn active" onclick="showSoftwareTab('uploaded')">已上传软件</button>
+                <button class="software-tab-btn" onclick="showSoftwareTab('preset')">预设工具</button>
+            </div>
+            
+            <!-- 已上传软件 -->
+            <div id="uploadedSoftwareTab" class="software-tab-content">
+                <div class="section-header">
+                    <h2>已上传软件</h2>
+                    <div class="sort-controls">
+                        <label for="sortSelect">排序方式：</label>
+                        <select id="sortSelect" class="sort-select">
+                            <option value="upload_time-desc">按时间（最新优先）</option>
+                            <option value="upload_time-asc">按时间（最早优先）</option>
+                            <option value="title-asc">按名称（A-Z）</option>
+                            <option value="title-desc">按名称（Z-A）</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="componentsContainer" class="components-container">
+                    <div id="componentsLoading" class="loading-state">加载中...</div>
+                    <div id="componentsEmpty" class="empty-state" style="display: none;">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-text">暂无上传的软件</div>
+                    </div>
+                    <div id="componentsList" class="components-list"></div>
+                </div>
+            </div>
+            
+            <!-- 预设工具 -->
+            <div id="presetToolsTab" class="software-tab-content" style="display: none;">
+                <div class="section-header">
+                    <h2>预设工具管理</h2>
+                    <div class="tools-controls">
+                        <select id="toolsCategoryFilter" class="sort-select">
+                            <option value="">全部分类</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="showAddToolModal()">添加工具</button>
+                    </div>
+                </div>
+                
+                <div id="toolsContainer" class="components-container">
+                    <div id="toolsLoading" class="loading-state">加载中...</div>
+                    <div id="toolsEmpty" class="empty-state" style="display: none;">
+                        <div class="empty-icon">🔧</div>
+                        <div class="empty-text">暂无工具</div>
+                    </div>
+                    <div id="toolsList" class="components-list"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 分类管理 -->
+        <div id="categoriesSection" class="components-section management-section" style="display: none;">
+            <div class="section-header">
+                <h2>分类管理</h2>
+                <button class="btn btn-primary" onclick="showAddCategoryModal()">添加分类</button>
+            </div>
+            
+            <div id="categoriesContainer" class="components-container">
+                <div id="categoriesLoading" class="loading-state">加载中...</div>
+                <div id="categoriesEmpty" class="empty-state" style="display: none;">
+                    <div class="empty-icon">📂</div>
+                    <div class="empty-text">暂无分类</div>
+                </div>
+                <div id="categoriesList" class="components-list"></div>
+            </div>
+        </div>
+        
+
+    </div>
+    
+    <!-- 删除确认模态框 -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">确认删除</div>
+            <div class="modal-text" id="deleteModalText">确定要删除这个软件吗？此操作不可撤销。</div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">取消</button>
+                <button class="btn btn-delete" id="confirmDeleteBtn">删除</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 分类添加/编辑模态框 -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-title" id="categoryModalTitle">添加分类</div>
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label class="form-label" for="categoryName">分类名称 *</label>
+                    <input type="text" id="categoryName" class="form-input" placeholder="请输入分类名称" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="categoryDisplayName">显示名称 *</label>
+                    <input type="text" id="categoryDisplayName" class="form-input" placeholder="请输入显示名称" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">取消</button>
+                    <button type="submit" class="btn btn-primary" id="categorySubmitBtn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 工具添加/编辑模态框 -->
+    <div id="toolModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-title" id="toolModalTitle">添加工具</div>
+            <form id="toolForm">
+                <div class="form-group">
+                    <label class="form-label" for="toolTitle">工具标题 *</label>
+                    <input type="text" id="toolTitle" class="form-input" placeholder="请输入工具标题" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="toolDescription">工具描述 *</label>
+                    <textarea id="toolDescription" class="form-input" rows="3" placeholder="请输入工具描述" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="toolCategoryId">选择分类 *</label>
+                    <select id="toolCategoryId" class="form-select" required>
+                        <option value="">请选择分类</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeToolModal()">取消</button>
+                    <button type="submit" class="btn btn-primary" id="toolSubmitBtn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+            initFileUpload();
+            initForm();
+            loadComponents();
+            initSortControls();
+        });
+        
+        // 当前要删除的软件ID
+        let componentToDelete = null;
+        
+        // 加载分类数据
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const categories = await response.json();
+                
+                const select = document.getElementById('category_id');
+                categories.forEach(category => {
+                    if (category.name !== 'all') {
+                        const option = document.createElement('option');
+                        option.value = category.id;
+                        option.textContent = category.display_name;
+                        select.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error('加载分类失败:', error);
+            }
+        }
+        
+        // 初始化文件上传
+        function initFileUpload() {
+            const fileInput = document.getElementById('file');
+            const fileLabel = document.getElementById('fileLabel');
+            const selectedFile = document.getElementById('selectedFile');
+            
+            // 文件选择事件
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    selectedFile.textContent = `已选择: ${file.name} (${formatFileSize(file.size)})`;
+                    selectedFile.style.display = 'block';
+                } else {
+                    selectedFile.style.display = 'none';
+                }
+            });
+            
+            // 拖拽事件
+            fileLabel.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                fileLabel.classList.add('dragover');
+            });
+            
+            fileLabel.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                fileLabel.classList.remove('dragover');
+            });
+            
+            fileLabel.addEventListener('drop', function(e) {
+                e.preventDefault();
+                fileLabel.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    fileInput.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+        
+        // 初始化表单
+        function initForm() {
+            const form = document.getElementById('uploadForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // 禁用提交按钮
+                submitBtn.disabled = true;
+                submitBtn.textContent = '上传中...';
+                
+                try {
+                    const formData = new FormData(form);
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showAlert('success', result.message + ` 访问地址: ${window.location.origin}${result.access_url}`);
+                        form.reset();
+                        document.getElementById('selectedFile').style.display = 'none';
+                    } else {
+                        showAlert('error', result.message);
+                    }
+                } catch (error) {
+                    showAlert('error', '上传失败，请重试');
+                    console.error('上传错误:', error);
+                } finally {
+                    // 恢复提交按钮
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '上传软件';
+                }
+            });
+        }
+        
+        // 显示提示信息
+        function showAlert(type, message) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            
+            // 创建消息内容和关闭按钮
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = message;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '×';
+            closeBtn.style.cssText = 'float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: inherit; margin-left: 10px;';
+            closeBtn.onclick = () => alert.remove();
+            
+            alert.appendChild(messageSpan);
+            alert.appendChild(closeBtn);
+            
+            // 清除之前的提示
+            container.innerHTML = '';
+            container.appendChild(alert);
+            
+            // 自动隐藏提示（成功3秒，错误5秒）
+            const autoHideTime = type === 'success' ? 3000 : 5000;
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, autoHideTime);
+        }
+        
+        // showMessage函数作为showAlert的别名
+        function showMessage(message, type) {
+            showAlert(type, message);
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 加载软件列表
+        async function loadComponents(sortBy = 'upload_time') {
+            const container = document.getElementById('componentsContainer');
+            const loadingState = document.getElementById('componentsLoading');
+            const emptyState = document.getElementById('componentsEmpty');
+            const componentsList = document.getElementById('componentsList');
+            
+            // 显示加载状态
+            loadingState.style.display = 'block';
+            emptyState.style.display = 'none';
+            componentsList.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/api/uploaded-components?sort=${sortBy}`);
+                if (!response.ok) {
+                    throw new Error('获取软件列表失败');
+                }
+                
+                const components = await response.json();
+                
+                // 隐藏加载状态
+                loadingState.style.display = 'none';
+                
+                if (components.length === 0) {
+                    emptyState.style.display = 'block';
+                } else {
+                    componentsList.style.display = 'grid';
+                    renderComponents(components);
+                }
+            } catch (error) {
+                console.error('加载软件列表失败:', error);
+                loadingState.style.display = 'none';
+                emptyState.style.display = 'block';
+                emptyState.querySelector('.empty-text').textContent = '加载软件列表失败，请刷新页面重试';
+            }
+        }
+        
+        // 渲染软件列表
+        function renderComponents(components) {
+            const componentsList = document.getElementById('componentsList');
+            componentsList.innerHTML = '';
+            
+            components.forEach(component => {
+                const card = document.createElement('div');
+                card.className = 'component-card';
+                card.innerHTML = `
+                    <div class="component-title">${component.title}</div>
+                    <div class="component-path">/${component.path}</div>
+                    <div class="component-meta">
+                        <span>分类: ${component.category_name || '未分类'}</span>
+                        <span>${formatDate(component.upload_time)}</span>
+                    </div>
+                    <div class="component-actions">
+                        <a href="/${component.path}" target="_blank" class="btn-small btn-visit">访问</a>
+                        <button class="btn-small btn-delete" onclick="showDeleteModal(${component.id}, '${component.title}')">删除</button>
+                    </div>
+                `;
+                componentsList.appendChild(card);
+            });
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // 初始化排序控件
+        function initSortControls() {
+            const sortSelect = document.getElementById('sortSelect');
+            sortSelect.addEventListener('change', function() {
+                loadComponents(this.value);
+            });
+        }
+        
+        // 显示删除确认模态框
+        function showDeleteModal(componentId, componentTitle) {
+            componentToDelete = componentId;
+            document.getElementById('deleteModalText').textContent = `确定要删除软件 "${componentTitle}" 吗？此操作不可撤销。`;
+            document.getElementById('deleteModal').style.display = 'block';
+            
+            // 绑定确认删除按钮事件
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                deleteComponent(componentId);
+            };
+        }
+        
+        // 关闭删除确认模态框
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            componentToDelete = null;
+        }
+        
+        // 删除软件
+        async function deleteComponent(componentId) {
+            try {
+                const response = await fetch(`/api/uploaded-components/${componentId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || '删除失败');
+                }
+                
+                // 关闭模态框
+                closeDeleteModal();
+                
+                // 显示成功消息
+                showMessage('软件删除成功！', 'success');
+                
+                // 重新加载软件列表
+                const sortBy = document.getElementById('sortSelect').value;
+                loadComponents(sortBy);
+                
+            } catch (error) {
+                console.error('删除软件失败:', error);
+                showMessage('删除软件失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const deleteModal = document.getElementById('deleteModal');
+            const categoryModal = document.getElementById('categoryModal');
+            const toolModal = document.getElementById('toolModal');
+            
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            } else if (event.target === categoryModal) {
+                closeCategoryModal();
+            } else if (event.target === toolModal) {
+                closeToolModal();
+            }
+        }
+        
+        // 管理界面切换
+        function showSection(section) {
+            // 隐藏所有管理区域
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('softwareSection').style.display = 'none';
+            document.getElementById('categoriesSection').style.display = 'none';
+            
+            // 移除所有导航按钮的激活状态
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // 显示选中的区域并激活对应按钮
+            if (section === 'upload') {
+                document.getElementById('uploadSection').style.display = 'block';
+                document.querySelector('[onclick="showSection(\'upload\')"').classList.add('active');
+            } else if (section === 'software') {
+                document.getElementById('softwareSection').style.display = 'block';
+                document.querySelector('[onclick="showSection(\'software\')"').classList.add('active');
+                // 默认显示已上传软件选项卡
+                showSoftwareTab('uploaded');
+            } else if (section === 'categories') {
+                document.getElementById('categoriesSection').style.display = 'block';
+                document.querySelector('[onclick="showSection(\'categories\')"]').classList.add('active');
+                loadCategoriesManagement();
+            }
+        }
+        
+        // 软件管理选项卡切换
+        function showSoftwareTab(tab) {
+            // 隐藏所有软件选项卡内容
+            document.getElementById('uploadedSoftwareTab').style.display = 'none';
+            document.getElementById('presetToolsTab').style.display = 'none';
+            
+            // 移除所有软件选项卡按钮的激活状态
+            document.querySelectorAll('.software-tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // 显示选中的选项卡并激活对应按钮
+            if (tab === 'uploaded') {
+                document.getElementById('uploadedSoftwareTab').style.display = 'block';
+                document.querySelector('[onclick="showSoftwareTab(\'uploaded\')"').classList.add('active');
+                // 加载已上传软件列表
+                loadComponents();
+            } else if (tab === 'preset') {
+                document.getElementById('presetToolsTab').style.display = 'block';
+                document.querySelector('[onclick="showSoftwareTab(\'preset\')"').classList.add('active');
+                // 加载预设工具列表
+                loadToolsManagement();
+                loadCategoriesForTools();
+            }
+        }
+        
+        // 分类管理相关函数
+        let currentEditingCategory = null;
+        
+        async function loadCategoriesManagement() {
+            const loading = document.getElementById('categoriesLoading');
+            const empty = document.getElementById('categoriesEmpty');
+            const list = document.getElementById('categoriesList');
+            
+            loading.style.display = 'block';
+            empty.style.display = 'none';
+            list.innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/categories');
+                const categories = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (categories.length === 0) {
+                    empty.style.display = 'block';
+                } else {
+                    categories.forEach(category => {
+                        if (category.name !== 'all') {
+                            const card = createCategoryCard(category);
+                            list.appendChild(card);
+                        }
+                    });
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                console.error('加载分类失败:', error);
+                showMessage('加载分类失败: ' + error.message, 'error');
+            }
+        }
+        
+        function createCategoryCard(category) {
+            const card = document.createElement('div');
+            card.className = 'category-card';
+            card.innerHTML = `
+                <div class="category-name">${category.name}</div>
+                <div class="category-display-name">${category.display_name}</div>
+                <div class="card-actions">
+                    <button class="btn-edit" onclick="editCategory(${category.id}, '${category.name.replace(/'/g, "\\'").replace(/"/g, '\\"')}', '${category.display_name.replace(/'/g, "\\'").replace(/"/g, '\\"')}')">
+                        编辑
+                    </button>
+                    <button class="btn-delete" onclick="deleteCategory(${category.id}, '${category.display_name.replace(/'/g, "\\'").replace(/"/g, '\\"')}')">
+                        删除
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+        
+        function showAddCategoryModal() {
+            currentEditingCategory = null;
+            document.getElementById('categoryModalTitle').textContent = '添加分类';
+            document.getElementById('categorySubmitBtn').textContent = '添加';
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categoryDisplayName').value = '';
+            document.getElementById('categoryModal').style.display = 'block';
+        }
+        
+        function editCategory(id, name, displayName) {
+            currentEditingCategory = id;
+            document.getElementById('categoryModalTitle').textContent = '编辑分类';
+            document.getElementById('categorySubmitBtn').textContent = '保存';
+            document.getElementById('categoryName').value = name;
+            document.getElementById('categoryDisplayName').value = displayName;
+            document.getElementById('categoryModal').style.display = 'block';
+        }
+        
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+            currentEditingCategory = null;
+        }
+        
+        // 分类表单提交
+        document.getElementById('categoryForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('categoryName').value.trim();
+            const displayName = document.getElementById('categoryDisplayName').value.trim();
+            
+            if (!name || !displayName) {
+                showMessage('请填写完整信息', 'error');
+                return;
+            }
+            
+            try {
+                let response;
+                if (currentEditingCategory) {
+                    // 编辑分类
+                    response = await fetch(`/api/categories/${currentEditingCategory}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, display_name: displayName })
+                    });
+                } else {
+                    // 添加分类
+                    response = await fetch('/api/categories', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, display_name: displayName })
+                    });
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    closeCategoryModal();
+                    loadCategoriesManagement();
+                    loadCategories(); // 重新加载上传表单的分类选项
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('保存分类失败:', error);
+                showMessage('保存分类失败: ' + error.message, 'error');
+            }
+        });
+        
+        async function deleteCategory(id, displayName) {
+            if (!confirm(`确定要删除分类 "${displayName}" 吗？此操作不可撤销。`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/categories/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    loadCategoriesManagement();
+                    loadCategories(); // 重新加载上传表单的分类选项
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('删除分类失败:', error);
+                showMessage('删除分类失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 工具管理相关函数
+        let currentEditingTool = null;
+        
+        async function loadToolsManagement() {
+            const loading = document.getElementById('toolsLoading');
+            const empty = document.getElementById('toolsEmpty');
+            const list = document.getElementById('toolsList');
+            const categoryFilter = document.getElementById('toolsCategoryFilter').value;
+            
+            loading.style.display = 'block';
+            empty.style.display = 'none';
+            list.innerHTML = '';
+            
+            try {
+                let url = '/api/preset-tools';
+                if (categoryFilter) {
+                    url += `?category_id=${categoryFilter}`;
+                }
+                
+                const response = await fetch(url);
+                const tools = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (tools.length === 0) {
+                    empty.style.display = 'block';
+                } else {
+                    tools.forEach(tool => {
+                        const card = createToolCard(tool);
+                        list.appendChild(card);
+                    });
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                console.error('加载工具失败:', error);
+                showMessage('加载工具失败: ' + error.message, 'error');
+            }
+        }
+        
+        function createToolCard(tool) {
+            const card = document.createElement('div');
+            card.className = 'tool-card';
+            card.innerHTML = `
+                <div class="tool-title">${tool.title}</div>
+                <div class="tool-description">${tool.description}</div>
+                <div class="tool-category">分类: ${tool.category_name}</div>
+                <div class="component-meta">
+                    <span>发布时间: ${tool.publish_date}</span>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-edit" onclick="editTool(${tool.id}, '${tool.title.replace(/'/g, "\\'").replace(/"/g, '\\"')}', '${tool.description.replace(/'/g, "\\'").replace(/"/g, '\\"')}', ${tool.category_id})">
+                        编辑
+                    </button>
+                    <button class="btn-delete" onclick="deleteTool(${tool.id}, '${tool.title.replace(/'/g, "\\'").replace(/"/g, '\\"')}')">
+                        删除
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+        
+        async function loadCategoriesForTools() {
+            try {
+                const response = await fetch('/api/categories');
+                const categories = await response.json();
+                
+                // 更新工具分类筛选器
+                const filterSelect = document.getElementById('toolsCategoryFilter');
+                filterSelect.innerHTML = '<option value="">全部分类</option>';
+                
+                // 更新工具表单分类选择器
+                const formSelect = document.getElementById('toolCategoryId');
+                formSelect.innerHTML = '<option value="">请选择分类</option>';
+                
+                categories.forEach(category => {
+                    if (category.name !== 'all') {
+                        const filterOption = document.createElement('option');
+                        filterOption.value = category.id;
+                        filterOption.textContent = category.display_name;
+                        filterSelect.appendChild(filterOption);
+                        
+                        const formOption = document.createElement('option');
+                        formOption.value = category.id;
+                        formOption.textContent = category.display_name;
+                        formSelect.appendChild(formOption);
+                    }
+                });
+            } catch (error) {
+                console.error('加载分类失败:', error);
+            }
+        }
+        
+        // 工具分类筛选器事件
+        document.getElementById('toolsCategoryFilter').addEventListener('change', function() {
+            loadToolsManagement();
+        });
+        
+        function showAddToolModal() {
+            currentEditingTool = null;
+            document.getElementById('toolModalTitle').textContent = '添加工具';
+            document.getElementById('toolSubmitBtn').textContent = '添加';
+            document.getElementById('toolTitle').value = '';
+            document.getElementById('toolDescription').value = '';
+            document.getElementById('toolCategoryId').value = '';
+            document.getElementById('toolModal').style.display = 'block';
+        }
+        
+        function editTool(id, title, description, categoryId) {
+            currentEditingTool = id;
+            document.getElementById('toolModalTitle').textContent = '编辑工具';
+            document.getElementById('toolSubmitBtn').textContent = '保存';
+            document.getElementById('toolTitle').value = title;
+            document.getElementById('toolDescription').value = description;
+            document.getElementById('toolCategoryId').value = categoryId;
+            document.getElementById('toolModal').style.display = 'block';
+        }
+        
+        function closeToolModal() {
+            document.getElementById('toolModal').style.display = 'none';
+            currentEditingTool = null;
+        }
+        
+        // 工具表单提交
+        document.getElementById('toolForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('toolTitle').value.trim();
+            const description = document.getElementById('toolDescription').value.trim();
+            const categoryId = document.getElementById('toolCategoryId').value;
+            
+            if (!title || !description || !categoryId) {
+                showMessage('请填写完整信息', 'error');
+                return;
+            }
+            
+            try {
+                let response;
+                if (currentEditingTool) {
+                    // 编辑工具
+                    response = await fetch(`/api/preset-tools/${currentEditingTool}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ title, description, category_id: categoryId })
+                    });
+                } else {
+                    // 添加工具
+                    response = await fetch('/api/preset-tools', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ title, description, category_id: categoryId })
+                    });
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    closeToolModal();
+                    loadToolsManagement();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('保存工具失败:', error);
+                showMessage('保存工具失败: ' + error.message, 'error');
+            }
+        });
+        
+        async function deleteTool(id, title) {
+            if (!confirm(`确定要删除工具 "${title}" 吗？此操作不可撤销。`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/preset-tools/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    loadToolsManagement();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('删除工具失败:', error);
+                showMessage('删除工具失败: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小工具集导航</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>小工具集导航</h1>
+            <p>发现和使用各种实用的在线小工具</p>
+            <button class="upload-btn" onclick="window.location.href='/upload'">上传软件</button>
+        </header>
+        
+        <!-- 搜索框 -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索软件名称或描述..." />
+                <button class="search-btn" id="searchBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </button>
+                <button class="clear-btn" id="clearBtn" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- 左侧分类导航 -->
+            <aside class="sidebar">
+                <h3>工具分类</h3>
+                <ul class="category-list" id="categoryList">
+                    <!-- 分类将通过JavaScript动态加载 -->
+                </ul>
+            </aside>
+            
+            <!-- 右侧工具展示区域 -->
+            <main class="content">
+                <div class="tools-header">
+                    <h2 id="currentCategory">全部工具</h2>
+                    <div class="tools-count">
+                        共 <span id="toolsCount">0</span> 个工具
+                    </div>
+                </div>
+                
+                <div class="tools-grid" id="toolsGrid">
+                    <!-- 工具卡片将通过JavaScript动态加载 -->
+                </div>
+                
+                <!-- 分页组件 -->
+                <div class="pagination-container" id="paginationContainer" style="display: none;">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">显示第 1-10 项，共 0 项</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="prevBtn" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15,18 9,12 15,6"></polyline>
+                            </svg>
+                            上一页
+                        </button>
+                        <div class="pagination-numbers" id="paginationNumbers">
+                            <!-- 页码按钮将通过JavaScript动态生成 -->
+                        </div>
+                        <button class="pagination-btn" id="nextBtn" disabled>
+                            下一页
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9,6 15,12 9,18"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 加载状态 -->
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <p>加载中...</p>
+                </div>
+                
+                <!-- 空状态 -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">📦</div>
+                    <h3>暂无工具</h3>
+                    <p>该分类下暂时没有工具，请选择其他分类查看</p>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
